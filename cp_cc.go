@@ -119,45 +119,7 @@ func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub, args []string
 	return nil, nil
 
 }
-func (t *SimpleChaincode) issueCommercialPaper(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 
-	/*		0
-		json
-	  	{
-			"ticker":  "string",
-			"par": 0.00,
-			"qty": 10,
-			"discount": 7.5,
-			"maturity": 30,
-			"owners": [ // This one is not required
-				{
-					"company": "company1",
-					"quantity": 5
-				},
-				{
-					"company": "company3",
-					"quantity": 3
-				},
-				{
-					"company": "company4",
-					"quantity": 2
-				}
-			],				
-			"issuer":"company2",
-			"issueDate":"1456161763790"  (current time in milliseconds as a string)
-
-		}
-	*/
-	//need one arg
-	if len(args) != 1 {
-		fmt.Println("error invalid arguments")
-		return nil, errors.New("Incorrect number of arguments. Expecting cheque record")
-	}
-
-	
-		return nil, nil
-
-}
 func GetAllCPs(stub *shim.ChaincodeStub) ([]CP, error){
 	
 	var allCPs []CP
@@ -307,11 +269,11 @@ func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []
 		fmt.Println("Firing createAccounts");
 		return t.createAccounts(stub, args)
 	}*/
-	if function == "issueCommercialPaper" {
+/*	if function == "issueCommercialPaper" {
 		fmt.Println("Firing issueCommercialPaper");
 		//Create an asset with some value
 		return t.issueCommercialPaper(stub, args)
-	} else if function == "createAccounts" {
+	} else*/ if function == "createAccounts" {
 		fmt.Println("Firing createAccounts");
 		return t.createAccounts(stub, args)
 	}
