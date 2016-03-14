@@ -77,7 +77,7 @@ type CP struct {
 	Ticker    string  `json:"ticker"`
 	Par       float64 `json:"par"`
 	Qty       int     `json:"qty"`
-
+	Discount  float64 `json:"discount"`
 	Maturity  int     `json:"maturity"`
 	Owners    []Owner `json:"owner"`
 	Issuer    string  `json:"issuer"`
@@ -96,7 +96,7 @@ type Transaction struct {
 	FromCompany string   `json:"fromCompany"`
 	ToCompany   string   `json:"toCompany"`
 	Quantity    int      `json:"quantity"`
-
+	Discount    float64  `json:"discount"`
 }
 
 func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
