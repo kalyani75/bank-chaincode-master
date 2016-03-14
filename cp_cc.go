@@ -160,35 +160,35 @@ if len(args) != 1 {
 	cq.Owners = append(cq.Owners, owner)
 	//suffix, err := generateCUSIPSuffix(cq.IssueDate, 10)
 //	cp.CUSIP = account.Prefix + suffix
-	cp.CUSIP = cq.IssueDate
-	
-	fmt.Println("Getting State on CP " + cp.CUSIP)
-	cpRxBytes, err := stub.GetState(cpPrefix+cp.CUSIP);
+	cq.CUSIP = cq.IssueDate
+
+	fmt.Println("Getting State on CP " + cq.CUSIP)
+	cpRxBytes, err := stub.GetState(cpPrefix + cq.CUSIP)
 	if cpRxBytes == nil {
 		fmt.Println("CUSIP does not exist, creating it")
-		cpBytes, err := json.Marshal(&cp)
+		cpBytes, err := json.Marshal(&cq)
 		if err != nil {
-			fmt.Println("Error marshalling cp");
+			fmt.Println("Error marshalling cp")
 			return nil, errors.New("Error issuing commercial paper")
 		}
-		err = stub.PutState(cpPrefix+cp.CUSIP, cpBytes)
+		err = stub.PutState(cpPrefix+cq.CUSIP, cpBytes)
 		if err != nil {
-			fmt.Println("Error issuing paper");
+			fmt.Println("Error issuing paper")
 			return nil, errors.New("Error issuing commercial paper")
 		}
 
-		fmt.Println("Marshalling account bytes to write");
+		fmt.Println("Marshalling account bytes to write")
 		accountBytesToWrite, err := json.Marshal(&account)
 		if err != nil {
-			fmt.Println("Error marshalling account");
+			fmt.Println("Error marshalling account")
 			return nil, errors.New("Error issuing commercial paper")
 		}
-		err = stub.PutState(accountPrefix + cp.Issuer, accountBytesToWrite)
+		err = stub.PutState(accountPrefix+cq.Issuer, accountBytesToWrite)
 		if err != nil {
-			fmt.Println("Error putting state on accountBytesToWrite");
+			fmt.Println("Error putting state on accountBytesToWrite")
 			return nil, errors.New("Error issuing commercial paper")
 		}
-		
+
 	}
 	return nil, nil
 }
