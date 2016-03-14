@@ -119,7 +119,9 @@ func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub, args []string
 	return nil, nil
 
 }
-
+func (t *SimpleChaincode) issueCommercialPaper(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+return nil, nil
+}
 func GetAllCPs(stub *shim.ChaincodeStub) ([]CP, error){
 	
 	var allCPs []CP
@@ -269,11 +271,11 @@ func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []
 		fmt.Println("Firing createAccounts");
 		return t.createAccounts(stub, args)
 	}*/
-/*	if function == "issueCommercialPaper" {
+	if function == "issueCommercialPaper" {
 		fmt.Println("Firing issueCommercialPaper");
 		//Create an asset with some value
 		return t.issueCommercialPaper(stub, args)
-	} else*/ if function == "createAccounts" {
+	} else if function == "createAccounts" {
 		fmt.Println("Firing createAccounts");
 		return t.createAccounts(stub, args)
 	}
