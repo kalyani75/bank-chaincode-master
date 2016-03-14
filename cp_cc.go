@@ -136,7 +136,6 @@ func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub, args []string
 	err = stub.PutState("PaperKeys", blankBytes)
 
 	fmt.Println("Accounts created")
-	fmt.Println("KD has added this to create accounts")
 	return nil, nil
 
 }
