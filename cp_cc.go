@@ -77,7 +77,7 @@ type CP struct {
 	Ticker    string  `json:"ticker"`
 	Par       float64 `json:"par"`
 	Qty       int     `json:"qty"`
-	Discount  float64 `json:"discount"`
+
 	Maturity  int     `json:"maturity"`
 	Owners    []Owner `json:"owner"`
 	Issuer    string  `json:"issuer"`
@@ -96,7 +96,7 @@ type Transaction struct {
 	FromCompany string   `json:"fromCompany"`
 	ToCompany   string   `json:"toCompany"`
 	Quantity    int      `json:"quantity"`
-	Discount    float64  `json:"discount"`
+
 }
 
 func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
@@ -169,6 +169,7 @@ func (t *SimpleChaincode) issueCheque(stub *shim.ChaincodeStub, args []string) (
 			"issueDate":"1456161763790"  (current time in milliseconds as a string)
 		}
 	*/
+	fmt.Println("KD in issue Cheque")
 	//need one arg
 	if len(args) != 1 {
 		fmt.Println("error invalid arguments")
@@ -222,7 +223,7 @@ func (t *SimpleChaincode) issueCheque(stub *shim.ChaincodeStub, args []string) (
 	cpRxBytes, err := stub.GetState(cpPrefix+cp.CUSIP);
 	if cpRxBytes == nil {
 		fmt.Println("CUSIP does not exist, creating it")
-		cpBytes, err := json.Marshal(&cp)
+		cpBytes, err := json.Mardshal(&cp)
 		if err != nil {
 			fmt.Println("Error marshalling cp");
 			return nil, errors.New("Error issuing commercial paper")
@@ -490,7 +491,7 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 	}
 	
 	amountToBeTransferred := float64(tr.Quantity) * cp.Par
-	amountToBeTransferred -= (amountToBeTransferred) * (cp.Discount / 100.0) * (float64(cp.Maturity) / 360.0)
+//KD comm	amountToBeTransferred -= (amountToBeTransferred) * (cp.Discount / 100.0) * (float64(cp.Maturity) / 360.0)
 	
 	// If toCompany doesn't have enough cash to buy the papers
 	if toCompany.CashBalance < amountToBeTransferred {
