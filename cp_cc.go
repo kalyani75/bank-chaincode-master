@@ -120,7 +120,158 @@ func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub, args []string
 
 }
 func (t *SimpleChaincode) issueCommercialPaper(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-return nil, nil
+if len(args) != 1 {
+		fmt.Println("error invalid arguments")
+		return nil, errors.New("Incorrect number of arguments. Expecting cheque record")
+	}
+
+	var cq CP
+	var err error
+	var account Account
+
+	fmt.Println("Unmarshalling Cheque");
+	err = json.Unmarshal([]byte(args[0]), &cq)
+	if err != nil {
+		fmt.Println("error invalid paper issue")
+		return nil, errors.New("Invalid commercial paper issue")
+	}
+
+	//generate the CUSIP
+	//get account prefix
+	fmt.Println("Getting state of - " + accountPrefix + cq.Issuer);
+	accountBytes, err := stub.GetState(accountPrefix + cq.Issuer);
+	if err != nil {
+		fmt.Println("Error Getting state of - " + accountPrefix + cq.Issuer);
+		return nil, errors.New("Error retrieving account " + cq.Issuer)
+	}
+	err = json.Unmarshal(accountBytes, &account)
+	if err != nil {
+		fmt.Println("Error Unmarshalling accountBytes");
+		return nil, errors.New("Error retrieving account " + cq.Issuer)
+	}
+
+	account.AssetsIds = append(account.AssetsIds, cq.CUSIP)
+
+	// Set the issuer to be the owner of all quantity
+	var owner Owner;
+	owner.Company = cq.Issuer
+	//owner.Quantity = cq.Qty
+	
+	cq.Owners = append(cq.Owners, owner)
+
+
+	suffix, err := generateCUSIPSuffix(cq.IssueDate, 30)
+	if err != nil {
+		fmt.Println("Error generating cusip");
+		return nil, errors.New("Error generating CUSIP")
+	}
+
+	fmt.Println("Marshalling cq bytes");
+	cq.CUSIP = account.Prefix + suffix
+	//rand.Seed(time.Now().UTC().UnixNano())
+	//cq.CUSIP = randomString(10)
+
+	fmt.Println("Getting State on cq " + cq.CUSIP)
+	cqRxBytes, err := stub.GetState(cqPrefix+cq.CUSIP);
+	if cqRxBytes == nil {
+		fmt.Println("CUSIP does not exist, creating it")
+		cqBytes, err := json.Marshal(&cq)
+		if err != nil {
+			fmt.Println("Error marshalling cq");
+			return nil, errors.New("Error issuing Cheque")
+		}
+		err = stub.PutState(cqPrefix+cq.CUSIP, cqBytes)
+		if err != nil {
+			fmt.Println("Error issuing paper");
+			return nil, errors.New("Error issuing Cheque")
+		}
+
+		fmt.Println("Marshalling account bytes to write");
+		accountBytesToWrite, err := json.Marshal(&account)
+		if err != nil {
+			fmt.Println("Error marshalling account");
+			return nil, errors.New("Error issuing Cheque")
+		}
+		err = stub.PutState(accountPrefix + cq.Issuer, accountBytesToWrite)
+		if err != nil {
+			fmt.Println("Error putting state on accountBytesToWrite");
+			return nil, errors.New("Error issuing Cheque")
+		}
+		
+		
+		// Update the paper keys by adding the new key
+		fmt.Println("Getting Cheque Keys");
+		keysBytes, err := stub.GetState("PaperKeys")
+		if err != nil {
+			fmt.Println("Error retrieving paper keys");
+			return nil, errors.New("Error retrieving Cheque keys")
+		}
+		var keys []string
+		err = json.Unmarshal(keysBytes, &keys)
+		if err != nil {
+			fmt.Println("Error unmarshel keys");
+			return nil, errors.New("Error unmarshalling Cheque keys ")
+		}
+		
+		fmt.Println("Appending the new key to Cheque Keys");
+		foundKey := false
+		for _, key := range keys {
+			if key == cqPrefix+cq.CUSIP {
+				foundKey = true
+			}
+		}
+		if foundKey == false {
+			keys = append(keys, cqPrefix+cq.CUSIP);		
+			keysBytesToWrite, err := json.Marshal(&keys)
+			if err != nil {
+				fmt.Println("Error marshalling keys");
+				return nil, errors.New("Error marshalling the keys")
+			}
+			fmt.Println("Put state on PaperKeys");
+			err = stub.PutState("PaperKeys", keysBytesToWrite)
+			if err != nil {
+				fmt.Println("Error writting keys back");
+				return nil, errors.New("Error writing the keys back")
+			}
+		}
+		
+		fmt.Println("Issue commercial paper %+v\n", cq)
+		return nil, nil
+	} else {
+		fmt.Println("CUSIP exists")
+		
+		var cqrx Cheque
+		fmt.Println("Unmarshalling Cheque " + cq.CUSIP)
+		err = json.Unmarshal(cpRxBytes, &cqrx)
+		if err != nil {
+			fmt.Println("Error unmarshalling cq " + cq.CUSIP)
+			return nil, errors.New("Error unmarshalling cq " + cq.CUSIP)
+		}
+		//commented by KD
+		/*cqrx.Qty = cqrx.Qty + cq.Qty;
+		
+		for key, val := range cqrx.Owners {
+			if val.Company == cq.Issuer {
+				cqrx.Owners[key].Quantity += cq.Qty
+				break
+			}
+		}*/
+				
+		cpWriteBytes, err := json.Marshal(&cqrx)
+		if err != nil {
+			fmt.Println("Error marshalling cq");
+			return nil, errors.New("Error issuing commercial paper")
+		}
+		err = stub.PutState(cqPrefix+cq.CUSIP, cpWriteBytes)
+		if err != nil {
+			fmt.Println("Error issuing paper");
+			return nil, errors.New("Error issuing commercial paper")
+		}
+
+		fmt.Println("Updated commercial paper %+v\n", cqrx)
+		return nil, nil
+	}
+
 }
 func GetAllCPs(stub *shim.ChaincodeStub) ([]CP, error){
 	
