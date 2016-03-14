@@ -158,6 +158,43 @@ if len(args) != 1 {
 	//owner.Quantity = cq.Qty
 	
 	cq.Owners = append(cq.Owners, owner)
+	suffix, err := generateCUSIPSuffix(cq.IssueDate, 10)
+	if err != nil {
+		fmt.Println("Error generating cusip");
+		return nil, errors.New("Error generating CUSIP")
+	}
+
+	fmt.Println("Marshalling cq bytes");
+	cq.CUSIP = account.Prefix + suffix
+
+
+	fmt.Println("Getting State on cq " + cq.CUSIP)
+	cqRxBytes, err := stub.GetState(cqPrefix+cq.CUSIP);
+	if cqRxBytes == nil {
+		fmt.Println("CUSIP does not exist, creating it")
+		cqBytes, err := json.Marshal(&cq)
+		if err != nil {
+			fmt.Println("Error marshalling cq");
+			return nil, errors.New("Error issuing Cheque")
+		}
+		err = stub.PutState(cqPrefix+cq.CUSIP, cqBytes)
+		if err != nil {
+			fmt.Println("Error issuing paper");
+			return nil, errors.New("Error issuing Cheque")
+		}
+
+		fmt.Println("Marshalling account bytes to write");
+		accountBytesToWrite, err := json.Marshal(&account)
+		if err != nil {
+			fmt.Println("Error marshalling account");
+			return nil, errors.New("Error issuing Cheque")
+		}
+		err = stub.PutState(accountPrefix + cq.Issuer, accountBytesToWrite)
+		if err != nil {
+			fmt.Println("Error putting state on accountBytesToWrite");
+			return nil, errors.New("Error issuing Cheque")
+		}
+	}
 
 
 	return nil, nil
