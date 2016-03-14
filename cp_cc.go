@@ -257,7 +257,7 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("run is running " + function)
 	
-	if function == "issueCommercialPaper" {
+/*	if function == "issueCommercialPaper" {
 		fmt.Println("Firing issueCommercialPaper");
 		//Create an asset with some value
 		return t.issueCommercialPaper(stub, args)
@@ -267,8 +267,11 @@ func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []
 	} else if function == "createAccounts" {
 		fmt.Println("Firing createAccounts");
 		return t.createAccounts(stub, args)
-	}
-
+	}*/
+if function == "createAccounts" {
+		fmt.Println("Firing createAccounts");
+		return t.createAccounts(stub, args)
+}
 	return nil, errors.New("Received unknown function invocation")
 }
 
