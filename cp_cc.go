@@ -169,7 +169,6 @@ func (t *SimpleChaincode) issueCheque(stub *shim.ChaincodeStub, args []string) (
 			"issueDate":"1456161763790"  (current time in milliseconds as a string)
 		}
 	*/
-	fmt.Println("KD in issue Cheque")
 	//need one arg
 	if len(args) != 1 {
 		fmt.Println("error invalid arguments")
