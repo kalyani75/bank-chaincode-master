@@ -158,10 +158,39 @@ if len(args) != 1 {
 	//owner.Quantity = cq.Qty
 	
 	cq.Owners = append(cq.Owners, owner)
-	suffix, err := generateCUSIPSuffix(cq.IssueDate, 10)
+	//suffix, err := generateCUSIPSuffix(cq.IssueDate, 10)
+//	cp.CUSIP = account.Prefix + suffix
+	cp.CUSIP = cq.IssueDate
+	
+	fmt.Println("Getting State on CP " + cp.CUSIP)
+	cpRxBytes, err := stub.GetState(cpPrefix+cp.CUSIP);
+	if cpRxBytes == nil {
+		fmt.Println("CUSIP does not exist, creating it")
+		cpBytes, err := json.Marshal(&cp)
+		if err != nil {
+			fmt.Println("Error marshalling cp");
+			return nil, errors.New("Error issuing commercial paper")
+		}
+		err = stub.PutState(cpPrefix+cp.CUSIP, cpBytes)
+		if err != nil {
+			fmt.Println("Error issuing paper");
+			return nil, errors.New("Error issuing commercial paper")
+		}
+
+		fmt.Println("Marshalling account bytes to write");
+		accountBytesToWrite, err := json.Marshal(&account)
+		if err != nil {
+			fmt.Println("Error marshalling account");
+			return nil, errors.New("Error issuing commercial paper")
+		}
+		err = stub.PutState(accountPrefix + cp.Issuer, accountBytesToWrite)
+		if err != nil {
+			fmt.Println("Error putting state on accountBytesToWrite");
+			return nil, errors.New("Error issuing commercial paper")
+		}
+		
+	}
 	return nil, nil
-
-
 }
 func GetAllCPs(stub *shim.ChaincodeStub) ([]CP, error){
 	
