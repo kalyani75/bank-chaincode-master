@@ -189,8 +189,78 @@ if len(args) != 1 {
 			return nil, errors.New("Error issuing commercial paper")
 		}
 
+		// Update the paper keys by adding the new key
+		fmt.Println("Getting Paper Keys")
+		keysBytes, err := stub.GetState("PaperKeys")
+		if err != nil {
+			fmt.Println("Error retrieving paper keys")
+			return nil, errors.New("Error retrieving paper keys")
+		}
+		var keys []string
+		err = json.Unmarshal(keysBytes, &keys)
+		if err != nil {
+			fmt.Println("Error unmarshel keys")
+			return nil, errors.New("Error unmarshalling paper keys ")
+		}
+
+		fmt.Println("Appending the new key to Paper Keys")
+		foundKey := false
+		for _, key := range keys {
+			if key == cpPrefix+cq.CUSIP {
+				foundKey = true
+			}
+		}
+		if foundKey == false {
+			keys = append(keys, cpPrefix+cq.CUSIP)
+			keysBytesToWrite, err := json.Marshal(&keys)
+			if err != nil {
+				fmt.Println("Error marshalling keys")
+				return nil, errors.New("Error marshalling the keys")
+			}
+			fmt.Println("Put state on PaperKeys")
+			err = stub.PutState("PaperKeys", keysBytesToWrite)
+			if err != nil {
+				fmt.Println("Error writting keys back")
+				return nil, errors.New("Error writing the keys back")
+			}
+		}
+
+		fmt.Println("Issue commercial paper %+v\n", cq)
+		return nil, nil
+	} else {
+		fmt.Println("CUSIP exists")
+
+		var cprx CP
+		fmt.Println("Unmarshalling CP " + cq.CUSIP)
+		err = json.Unmarshal(cpRxBytes, &cprx)
+		if err != nil {
+			fmt.Println("Error unmarshalling cp " + cq.CUSIP)
+			return nil, errors.New("Error unmarshalling cp " + cq.CUSIP)
+		}
+
+		//	cprx.Qty = cprx.Qty + cp.Qty
+
+		/*	for key, val := range cprx.Owners {
+			if val.Company == cp.Issuer {
+				cprx.Owners[key].Quantity += cp.Qty
+				break
+			}
+		}*/
+
+		cpWriteBytes, err := json.Marshal(&cprx)
+		if err != nil {
+			fmt.Println("Error marshalling cp")
+			return nil, errors.New("Error issuing commercial paper")
+		}
+		err = stub.PutState(cpPrefix+cq.CUSIP, cpWriteBytes)
+		if err != nil {
+			fmt.Println("Error issuing paper")
+			return nil, errors.New("Error issuing commercial paper")
+		}
+
+		fmt.Println("Updated commercial paper %+v\n", cprx)
+		return nil, nil
 	}
-	return nil, nil
 }
 func GetAllCPs(stub *shim.ChaincodeStub) ([]CP, error){
 	
