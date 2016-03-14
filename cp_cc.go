@@ -154,7 +154,7 @@ func (t *SimpleChaincode) issueCommercialPaper(stub *shim.ChaincodeStub, args []
 		return nil, errors.New("Incorrect number of arguments. Expecting cheque record")
 	}
 
-	var cq Cheque
+	var cq CP
 	var err error
 	var account Account
 
@@ -178,7 +178,7 @@ func (t *SimpleChaincode) issueCommercialPaper(stub *shim.ChaincodeStub, args []
 		fmt.Println("Error Unmarshalling accountBytes");
 		return nil, errors.New("Error retrieving account " + cq.Issuer)
 	}
-	fmt.Println("KD After Get State" + account)
+	fmt.Println("KD After Get State" + account);
 	account.AssetsIds = append(account.AssetsIds, cq.CUSIP)
 
 	// Set the issuer to be the owner of all quantity
