@@ -445,6 +445,49 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 	fromCompany.CashBalance -= amountToBeTransferred
 	toCompany.CashBalance += amountToBeTransferred
 
+	fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
+
+	// Write everything back
+	// To Company
+	toCompanyBytesToWrite, err := json.Marshal(&toCompany)
+	if err != nil {
+		fmt.Println("Error marshalling the toCompany")
+		return nil, errors.New("Error marshalling the toCompany")
+	}
+	fmt.Println("Put state on toCompany")
+	err = stub.PutState(accountPrefix+tr.ToCompany, toCompanyBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the toCompany back")
+		return nil, errors.New("Error writing the toCompany back")
+	}
+
+	// From company
+	fromCompanyBytesToWrite, err := json.Marshal(&fromCompany)
+	if err != nil {
+		fmt.Println("Error marshalling the fromCompany")
+		return nil, errors.New("Error marshalling the fromCompany")
+	}
+	fmt.Println("Put state on fromCompany")
+	err = stub.PutState(accountPrefix+tr.FromCompany, fromCompanyBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the fromCompany back")
+		return nil, errors.New("Error writing the fromCompany back")
+	}
+
+	// cp
+	cpBytesToWrite, err := json.Marshal(&cp)
+	if err != nil {
+		fmt.Println("Error marshalling the cp")
+		return nil, errors.New("Error marshalling the cp")
+	}
+	fmt.Println("Put state on Cheque")
+	err = stub.PutState(cpPrefix+tr.CUSIP, cpBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the cp back")
+		return nil, errors.New("Error writing the cp back")
+	}
+
+	fmt.Println("Successfully completed Invoke")
 	return nil, nil
 }
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
