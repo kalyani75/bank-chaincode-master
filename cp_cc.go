@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
+	"math/rand"
 	"github.com/openblockchain/obc-peer/openchain/chaincode/shim"
 )
 
@@ -50,7 +50,16 @@ func msToTime(ms string) (time.Time, error) {
 	return time.Unix(msInt/millisPerSecond,
 		(msInt%millisPerSecond)*nanosPerMillisecond), nil
 }
-
+func randomString(l int) string {
+	bytes := make([]byte, l)
+	for i := 0; i < l; i++ {
+		bytes[i] = byte(randInt(65, 90))
+	}
+	return string(bytes)
+}
+func randInt(min int, max int) int {
+	return min + rand.Intn(max-min)
+}
 
 
 type Owner struct {
@@ -160,8 +169,10 @@ if len(args) != 1 {
 	cq.Owners = append(cq.Owners, owner)
 	//suffix, err := generateCUSIPSuffix(cq.IssueDate, 10)
 //	cp.CUSIP = account.Prefix + suffix
-	cq.CUSIP = cq.IssueDate
-
+//	cq.CUSIP = cq.IssueDate
+	rand.Seed(time.Now().UTC().UnixNano())
+	cq.CUSIP = randomString(10)
+	
 	fmt.Println("Getting State on CP " + cq.CUSIP)
 	cpRxBytes, err := stub.GetState(cpPrefix + cq.CUSIP)
 	if cpRxBytes == nil {
