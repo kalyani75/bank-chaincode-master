@@ -332,70 +332,6 @@ func GetCompany(companyID string, stub *shim.ChaincodeStub) (Account, error){
 	
 	return company, nil
 }
-func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
-	//need one arg
-	if len(args) < 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting ......")
-	}
-
-	if args[0] == "GetAllCPs" {
-		fmt.Println("Getting all CPs");
-		allCPs, err := GetAllCPs(stub);
-		if err != nil {
-			fmt.Println("Error from getallcps");
-			return nil, err
-		} else {
-			allCPsBytes, err1 := json.Marshal(&allCPs)
-			if err1 != nil {
-				fmt.Println("Error marshalling allcps");
-				return nil, err1
-			}	
-			fmt.Println("All success, returning allcps");
-			return allCPsBytes, nil		 
-		}
-	} else if args[0] == "GetCP" {
-		fmt.Println("Getting particular cp");
-		cp, err := GetCP(args[1], stub);
-		if err != nil {
-			fmt.Println("Error Getting particular cp");
-			return nil, err
-		} else {
-			cpBytes, err1 := json.Marshal(&cp)
-			if err1 != nil {
-				fmt.Println("Error marshalling the cp");
-				return nil, err1
-			}	
-			fmt.Println("All success, returning the cp");
-			return cpBytes, nil		 
-		}
-	} else if args[0] == "GetCompany" {
-		fmt.Println("Getting the company");
-		company, err := GetCompany(args[1], stub);
-		if err != nil {
-			fmt.Println("Error from getCompany");
-			return nil, err
-		} else {
-			companyBytes, err1 := json.Marshal(&company)
-			if err1 != nil {
-				fmt.Println("Error marshalling the company");
-				return nil, err1
-			}	
-			fmt.Println("All success, returning the company");
-			return companyBytes, nil		 
-		}
-	} else {
-		fmt.Println("Generic Query call");
-		bytes, err := stub.GetState(args[0])
-
-		if err != nil {
-			fmt.Println("Some error happenend");
-			return nil, errors.New("Some Error happened")
-		}
-
-		fmt.Println("All success, returning from generic");
-		return bytes, nil		
-	}
-}
 func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	/*		0
 		json
@@ -582,6 +518,71 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 	fmt.Println("Successfully completed Invoke")
 	return nil, nil
 }
+func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+	//need one arg
+	if len(args) < 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting ......")
+	}
+
+	if args[0] == "GetAllCPs" {
+		fmt.Println("Getting all CPs");
+		allCPs, err := GetAllCPs(stub);
+		if err != nil {
+			fmt.Println("Error from getallcps");
+			return nil, err
+		} else {
+			allCPsBytes, err1 := json.Marshal(&allCPs)
+			if err1 != nil {
+				fmt.Println("Error marshalling allcps");
+				return nil, err1
+			}	
+			fmt.Println("All success, returning allcps");
+			return allCPsBytes, nil		 
+		}
+	} else if args[0] == "GetCP" {
+		fmt.Println("Getting particular cp");
+		cp, err := GetCP(args[1], stub);
+		if err != nil {
+			fmt.Println("Error Getting particular cp");
+			return nil, err
+		} else {
+			cpBytes, err1 := json.Marshal(&cp)
+			if err1 != nil {
+				fmt.Println("Error marshalling the cp");
+				return nil, err1
+			}	
+			fmt.Println("All success, returning the cp");
+			return cpBytes, nil		 
+		}
+	} else if args[0] == "GetCompany" {
+		fmt.Println("Getting the company");
+		company, err := GetCompany(args[1], stub);
+		if err != nil {
+			fmt.Println("Error from getCompany");
+			return nil, err
+		} else {
+			companyBytes, err1 := json.Marshal(&company)
+			if err1 != nil {
+				fmt.Println("Error marshalling the company");
+				return nil, err1
+			}	
+			fmt.Println("All success, returning the company");
+			return companyBytes, nil		 
+		}
+	} else {
+		fmt.Println("Generic Query call");
+		bytes, err := stub.GetState(args[0])
+
+		if err != nil {
+			fmt.Println("Some error happenend");
+			return nil, errors.New("Some Error happened")
+		}
+
+		fmt.Println("All success, returning from generic");
+		return bytes, nil		
+	}
+}
+
 func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("run is running " + function)
 	
