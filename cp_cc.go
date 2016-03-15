@@ -446,44 +446,7 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 	toCompany.CashBalance += amountToBeTransferred
 
 	toOwnerFound := false
-	/*commented by KD
-	  	for key, owner := range cp.Owners {
-	  		if owner.Company == tr.FromCompany {
-	  			fmt.Println("Reducing Quantity from the FromCompany")
-	  			cp.Owners[key].Quantity -= tr.Quantity
-	  //			owner.Quantity -= tr.Quantity
-	  		}
-	  		if owner.Company == tr.ToCompany {
-	  			fmt.Println("Increasing Quantity from the ToCompany")
-	  			toOwnerFound = true
-	  			cp.Owners[key].Quantity += tr.Quantity
-	  //			owner.Quantity += tr.Quantity
-	  		}
-	  	}
 
-	  	if toOwnerFound == false {
-	  		var newOwner Owner
-	  		fmt.Println("As ToOwner was not found, appending the owner to the Cheque")
-	  		newOwner.Quantity = tr.Quantity
-	  		newOwner.Company = tr.ToCompany
-	  		cp.Owners = append(cp.Owners, newOwner)
-	  	}
-	*/
-	fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
-
-	// Write everything back
-	// To Company
-	toCompanyBytesToWrite, err := json.Marshal(&toCompany)
-	if err != nil {
-		fmt.Println("Error marshalling the toCompany")
-		return nil, errors.New("Error marshalling the toCompany")
-	}
-	fmt.Println("Put state on toCompany")
-	err = stub.PutState(accountPrefix+tr.ToCompany, toCompanyBytesToWrite)
-	if err != nil {
-		fmt.Println("Error writing the toCompany back")
-		return nil, errors.New("Error writing the toCompany back")
-	}
 	return nil, nil
 }
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
