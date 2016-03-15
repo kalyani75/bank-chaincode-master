@@ -445,8 +445,6 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 	fromCompany.CashBalance -= amountToBeTransferred
 	toCompany.CashBalance += amountToBeTransferred
 
-	toOwnerFound := false
-
 	return nil, nil
 }
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
