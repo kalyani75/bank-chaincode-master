@@ -604,7 +604,7 @@ func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []
 	} else if function == "transferPaper" {
 		fmt.Println("Firing cretransferPaperateAccounts");
 		return t.transferPaper(stub, args)
-	}else if function == "createAccounts" {
+	} else if function == "createAccounts" {
 		fmt.Println("Firing createAccounts");
 		return t.createAccounts(stub, args)
 	}
