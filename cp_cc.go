@@ -396,7 +396,192 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 		return bytes, nil		
 	}
 }
+func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	/*		0
+		json
+	  	{
+			  "CUSIP": "",
+			  "fromCompany":"",
+			  "toCompany":"",
+			  "quantity": 1
+		}
+	*/
+	//need one arg
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting cheque record")
+	}
 
+	var tr Transaction
+
+	fmt.Println("Unmarshalling Transaction")
+	err := json.Unmarshal([]byte(args[0]), &tr)
+	if err != nil {
+		fmt.Println("Error Unmarshalling Transaction")
+		return nil, errors.New("Invalid cheque issue")
+	}
+
+	fmt.Println("Getting State on Cheque " + tr.CUSIP)
+	cpBytes, err := stub.GetState(cpPrefix + tr.CUSIP)
+	if err != nil {
+		fmt.Println("CUSIP not found")
+		return nil, errors.New("CUSIP not found " + tr.CUSIP)
+	}
+
+	var cp CP
+	fmt.Println("Unmarshalling Cheque " + tr.CUSIP)
+	err = json.Unmarshal(cpBytes, &cp)
+	if err != nil {
+		fmt.Println("Error unmarshalling cheque " + tr.CUSIP)
+		return nil, errors.New("Error unmarshalling cheque " + tr.CUSIP)
+	}
+
+	var fromCompany Account
+	fmt.Println("Getting State on fromCompany " + tr.FromCompany)
+	fromCompanyBytes, err := stub.GetState(accountPrefix + tr.FromCompany)
+	if err != nil {
+		fmt.Println("Account not found " + tr.FromCompany)
+		return nil, errors.New("Account not found " + tr.FromCompany)
+	}
+
+	fmt.Println("Unmarshalling FromCompany ")
+	err = json.Unmarshal(fromCompanyBytes, &fromCompany)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + tr.FromCompany)
+		return nil, errors.New("Error unmarshalling account " + tr.FromCompany)
+	}
+
+	var toCompany Account
+	fmt.Println("Getting State on ToCompany " + tr.ToCompany)
+	toCompanyBytes, err := stub.GetState(accountPrefix + tr.ToCompany)
+	if err != nil {
+		fmt.Println("Account not found " + tr.ToCompany)
+		return nil, errors.New("Account not found " + tr.ToCompany)
+	}
+
+	fmt.Println("Unmarshalling tocompany")
+	err = json.Unmarshal(toCompanyBytes, &toCompany)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + tr.ToCompany)
+		return nil, errors.New("Error unmarshalling account " + tr.ToCompany)
+	}
+
+	// Check for all the possible errors
+	ownerFound := false
+	//	quantity := 0
+	for _, owner := range cp.Owners {
+		if owner.Company == tr.FromCompany {
+			ownerFound = true
+			//	quantity = owner.Quantity
+		}
+	}
+
+	// If fromCompany doesn't own this paper
+	if ownerFound == false {
+		fmt.Println("The company " + tr.FromCompany + "doesn't own any of this paper")
+		return nil, errors.New("The company " + tr.FromCompany + "doesn't own any of this paper")
+	} else {
+		fmt.Println("The FromCompany does own this paper")
+	}
+
+	// If fromCompany doesn't own enought quantity of this paper
+	//commented by KD
+	/*if quantity < tr.Quantity {
+		fmt.Println("The company " + tr.FromCompany + "doesn't own enough of this paper");
+		return nil, errors.New("The company " + tr.FromCompany + "doesn't own enough of this paper");
+	} else {
+		fmt.Println("The FromCompany owns enough of this paper")
+	}
+	*/
+	//amountToBeTransferred := float64(tr.Quantity) * cp.Par
+	amountToBeTransferred := cp.Par
+	//commented by KD	//amountToBeTransferred -= (amountToBeTransferred) * (cp.Discount / 100.0) * (float64(cp.Maturity) / 360.0)
+
+	// If toCompany doesn't have enough cash to buy the papers
+	// commented by KD //if toCompany.CashBalance < amountToBeTransferred {
+
+	if fromCompany.CashBalance < amountToBeTransferred {
+		fmt.Println("The company " + tr.ToCompany + "doesn't have enough cash to purchase the papers")
+		return nil, errors.New("The company " + tr.ToCompany + "doesn't have enough cash to purchase the papers")
+	} else {
+		fmt.Println("The ToCompany has enough money to be transferred for this paper")
+	}
+
+	/* commented by KD
+	toCompany.CashBalance -= amountToBeTransferred
+		fromCompany.CashBalance += amountToBeTransferred
+	*/
+	fromCompany.CashBalance -= amountToBeTransferred
+	toCompany.CashBalance += amountToBeTransferred
+
+	toOwnerFound := false
+	/*commented by KD
+	  	for key, owner := range cp.Owners {
+	  		if owner.Company == tr.FromCompany {
+	  			fmt.Println("Reducing Quantity from the FromCompany")
+	  			cp.Owners[key].Quantity -= tr.Quantity
+	  //			owner.Quantity -= tr.Quantity
+	  		}
+	  		if owner.Company == tr.ToCompany {
+	  			fmt.Println("Increasing Quantity from the ToCompany")
+	  			toOwnerFound = true
+	  			cp.Owners[key].Quantity += tr.Quantity
+	  //			owner.Quantity += tr.Quantity
+	  		}
+	  	}
+
+	  	if toOwnerFound == false {
+	  		var newOwner Owner
+	  		fmt.Println("As ToOwner was not found, appending the owner to the Cheque")
+	  		newOwner.Quantity = tr.Quantity
+	  		newOwner.Company = tr.ToCompany
+	  		cp.Owners = append(cp.Owners, newOwner)
+	  	}
+	*/
+	fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
+
+	// Write everything back
+	// To Company
+	toCompanyBytesToWrite, err := json.Marshal(&toCompany)
+	if err != nil {
+		fmt.Println("Error marshalling the toCompany")
+		return nil, errors.New("Error marshalling the toCompany")
+	}
+	fmt.Println("Put state on toCompany")
+	err = stub.PutState(accountPrefix+tr.ToCompany, toCompanyBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the toCompany back")
+		return nil, errors.New("Error writing the toCompany back")
+	}
+
+	// From company
+	fromCompanyBytesToWrite, err := json.Marshal(&fromCompany)
+	if err != nil {
+		fmt.Println("Error marshalling the fromCompany")
+		return nil, errors.New("Error marshalling the fromCompany")
+	}
+	fmt.Println("Put state on fromCompany")
+	err = stub.PutState(accountPrefix+tr.FromCompany, fromCompanyBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the fromCompany back")
+		return nil, errors.New("Error writing the fromCompany back")
+	}
+
+	// cp
+	cpBytesToWrite, err := json.Marshal(&cp)
+	if err != nil {
+		fmt.Println("Error marshalling the cp")
+		return nil, errors.New("Error marshalling the cp")
+	}
+	fmt.Println("Put state on Cheque")
+	err = stub.PutState(cpPrefix+tr.CUSIP, cpBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the cp back")
+		return nil, errors.New("Error writing the cp back")
+	}
+
+	fmt.Println("Successfully completed Invoke")
+	return nil, nil
+}
 func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("run is running " + function)
 	
@@ -415,7 +600,10 @@ func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []
 		fmt.Println("Firing issueCommercialPaper");
 		//Create an asset with some value
 		return t.issueCommercialPaper(stub, args)
-	} else if function == "createAccounts" {
+	} else if function == "transferPaper" {
+		fmt.Println("Firing cretransferPaperateAccounts");
+		return t.transferPaper(stub, args)
+	}else if function == "createAccounts" {
 		fmt.Println("Firing createAccounts");
 		return t.createAccounts(stub, args)
 	}
