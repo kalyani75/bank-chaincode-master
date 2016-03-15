@@ -369,6 +369,35 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 		fmt.Println("Error unmarshalling cheque " + tr.CUSIP)
 		return nil, errors.New("Error unmarshalling cheque " + tr.CUSIP)
 	}
+		var fromCompany Account
+	fmt.Println("Getting State on fromCompany " + tr.FromCompany)
+	fromCompanyBytes, err := stub.GetState(accountPrefix + tr.FromCompany)
+	if err != nil {
+		fmt.Println("Account not found " + tr.FromCompany)
+		return nil, errors.New("Account not found " + tr.FromCompany)
+	}
+
+	fmt.Println("Unmarshalling FromCompany ")
+	err = json.Unmarshal(fromCompanyBytes, &fromCompany)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + tr.FromCompany)
+		return nil, errors.New("Error unmarshalling account " + tr.FromCompany)
+	}
+
+	var toCompany Account
+	fmt.Println("Getting State on ToCompany " + tr.ToCompany)
+	toCompanyBytes, err := stub.GetState(accountPrefix + tr.ToCompany)
+	if err != nil {
+		fmt.Println("Account not found " + tr.ToCompany)
+		return nil, errors.New("Account not found " + tr.ToCompany)
+	}
+
+	fmt.Println("Unmarshalling tocompany")
+	err = json.Unmarshal(toCompanyBytes, &toCompany)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + tr.ToCompany)
+		return nil, errors.New("Error unmarshalling account " + tr.ToCompany)
+	}
 	return nil, nil
 }
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
