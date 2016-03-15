@@ -355,7 +355,20 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 		fmt.Println("Error Unmarshalling Transaction")
 		return nil, errors.New("Invalid cheque issue")
 	}
+	fmt.Println("Getting State on Cheque " + tr.CUSIP)
+	cpBytes, err := stub.GetState(cpPrefix + tr.CUSIP)
+	if err != nil {
+		fmt.Println("CUSIP not found")
+		return nil, errors.New("CUSIP not found " + tr.CUSIP)
+	}
 
+	var cp CP
+	fmt.Println("Unmarshalling Cheque " + tr.CUSIP)
+	err = json.Unmarshal(cpBytes, &cp)
+	if err != nil {
+		fmt.Println("Error unmarshalling cheque " + tr.CUSIP)
+		return nil, errors.New("Error unmarshalling cheque " + tr.CUSIP)
+	}
 	return nil, nil
 }
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
