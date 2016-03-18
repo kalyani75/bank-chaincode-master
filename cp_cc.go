@@ -449,13 +449,13 @@ func (t *SimpleChaincode) transferPaper(stub *shim.ChaincodeStub, args []string)
 	} else {
 		fmt.Println("The ToCompany has enough money to be transferred for this paper")
 	}
-	/* commented by KD
+	commented by KD
 	toCompany.CashBalance -= amountToBeTransferred
 		fromCompany.CashBalance += amountToBeTransferred
-	*/
-	fromCompany.CashBalance -= amountToBeTransferred
+	
+/*	fromCompany.CashBalance -= amountToBeTransferred
 	toCompany.CashBalance += amountToBeTransferred
-
+*/
 	fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
 
 	// Write everything back
