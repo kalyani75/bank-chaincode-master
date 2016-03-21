@@ -163,8 +163,8 @@ if len(args) != 1 {
 
 	// Set the issuer to be the owner of all quantity
 	var owner Owner;
-//	owner.Company = cq.Issuer
-owner.Company = "company1"
+	owner.Company = cq.Issuer
+//owner.Company = "company1"
 	//owner.Quantity = cq.Qty
 
 	cq.Owners = append(cq.Owners, owner)
