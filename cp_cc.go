@@ -162,11 +162,13 @@ if len(args) != 1 {
 	account.AssetsIds = append(account.AssetsIds, cq.CUSIP)
 
 	// Set the issuer to be the owner of all quantity
-//	var owner Owner;
+	var owner Owner
 //	owner.Company = cq.Issuer
+	owner.Company = cq.Owners[0]
 	//owner.Quantity = cq.Qty
-	
-//	cq.Owners = append(cq.Owners, owner)
+
+	//cq.Owners = append(cq.Owners, owner)
+	cq.Owners[0]=owner
 	//suffix, err := generateCUSIPSuffix(cq.IssueDate, 10)
 //	cp.CUSIP = account.Prefix + suffix
 //	cq.CUSIP = cq.IssueDate
